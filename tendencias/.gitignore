@@ -4,3 +4,6 @@
 *.py[cod]
 assets/external/
 __pycache__/
+.env
+.env.local
+*.toml

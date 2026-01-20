@@ -4,3 +4,7 @@ __pycache__/
 assets/external/
 .web
 *.db
+.env
+.env.local
+.streamlit/secrets.toml
+*.toml
