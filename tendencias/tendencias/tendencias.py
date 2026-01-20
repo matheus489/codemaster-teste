@@ -4,14 +4,34 @@ import requests
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
-import random 
+import re
 
 load_dotenv()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+class TagCloud(rx.Component):
+    # Definimos a biblioteca npm que o Reflex deve instalar
+    library = "react-tagcloud"
+    # O nome do componente dentro da biblioteca
+    tag = "TagCloud"
+    
+    # As propriedades (props) que o componente aceita
+    min_size: rx.Var[int]
+    max_size: rx.Var[int]
+    tags: rx.Var[list[dict]]
+    color_options: rx.Var[dict]
+    
+    # Evento opcional para quando se clica numa palavra
+    def on_click(self, tag):
+        return rx.console_log(f"Clicou em: {tag['value']}")
+
+# Criamos um atalho fácil para usar o componente
+tag_cloud = TagCloud.create
+
 class TrendState(rx.State):
     urls: list[str] = ["", "", ""]
+    cloud_data: list[dict[str, int]] = []
     is_analyzing: bool = False
     keywords: list[dict[str, str]] = []
 
@@ -65,38 +85,30 @@ class TrendState(rx.State):
             )
 
             raw_output = response.choices[0].message.content
-            novas_keywords = []
+            processed_data = []
 
             for item in raw_output.split(","):
                 if ":" in item:
                     partes = item.split(":")
-                    termo = partes[0].strip()
-                    peso_bruto = partes[1].strip()
-                    
-                    # --- LIMPEZA ROBUSTA ---
-                    # Remove pontos, espaços ou qualquer coisa que não seja dígito
-                    peso_limpo = "".join(filter(str.isdigit, peso_bruto))
-                    
-                    # Se por acaso a limpeza resultar em vazio, usamos peso 1 como padrão
-                    peso_final = int(peso_limpo) if peso_limpo else 1
-                    
-                    # Cálculo de tamanho (ajuste os valores conforme preferir)
-                    tamanho_base = 0.9
-                    incremento = peso_final * 0.2
-                    tamanho_formatado = f"{tamanho_base + incremento}rem"
-                    
-                    novas_keywords.append({
-                        "text": termo, 
-                        "size": tamanho_formatado,
-                        "weight": peso_final # Guardamos o peso original para lógica de cores
-                    })
-
-            # --- O SEGREDO ESTÁ AQUI ---
-            # Randomiza a lista local antes de enviar para o State
-            random.shuffle(novas_keywords)
-            
-            # Agora o State recebe a lista misturada
-            self.keywords = novas_keywords
+                    if len(partes) >= 2:
+                        word = partes[0].strip()
+                        peso_bruto = partes[1].strip()
+                        
+                        # --- LIMPEZA COM REGEX ---
+                        # \D remove tudo o que NÃO for um dígito (0-9)
+                        peso_limpo = re.sub(r'\D', '', peso_bruto)
+                        
+                        # Converte apenas se sobrou algum número, senão usa 1
+                        val_count = int(peso_limpo) if peso_limpo else 1
+                        
+                        # Formata para o react-tagcloud (value e count)
+                        processed_data.append({
+                            "value": word,
+                            "count": val_count * 5 # Multiplicamos para o tamanho ser visível
+                        })
+                
+            self.cloud_data = processed_data
+            self.is_analyzing = False
 
         except Exception as e:
             yield rx.window_alert(f"Erro na análise: {str(e)}")
@@ -105,30 +117,30 @@ class TrendState(rx.State):
             self.is_analyzing = False
             yield
 
-def classic_word_tag(tag: rx.Var) -> rx.Component:
-    # Lógica de peso (mesma de antes)
-    is_hot = tag["size"].contains("10") | tag["size"].contains("9") | tag["size"].contains("8")
+# def classic_word_tag(tag: rx.Var) -> rx.Component:
+#     # Lógica de peso (mesma de antes)
+#     is_hot = tag["size"].contains("10") | tag["size"].contains("9") | tag["size"].contains("8")
     
-    return rx.text(
-        tag["text"],
-        style={
-            "font_size": tag["size"],
-            "font_weight": rx.cond(is_hot, "800", "400"),
-            # Cores variadas para um look de "nuvem"
-            "color": rx.cond(
-                is_hot, 
-                "#0066CC", # Destaque azul
-                "#86868B"  # Cinza secundário
-            ),
-            # "transition": "all 0.2s ease",
-            # "_hover": {
-            #     "color": "#00B2FF",
-            #     "transform": "scale(1.2)",
-            #     "cursor": "pointer"
-            # },
-            # Opcional: Algumas palavras rotacionadas para efeito visual
-        }
-    )
+#     return rx.text(
+#         tag["text"],
+#         style={
+#             "font_size": tag["size"],
+#             "font_weight": rx.cond(is_hot, "800", "400"),
+#             # Cores variadas para um look de "nuvem"
+#             "color": rx.cond(
+#                 is_hot, 
+#                 "#0066CC", # Destaque azul
+#                 "#86868B"  # Cinza secundário
+#             ),
+#             # "transition": "all 0.2s ease",
+#             # "_hover": {
+#             #     "color": "#00B2FF",
+#             #     "transform": "scale(1.2)",
+#             #     "cursor": "pointer"
+#             # },
+#             # Opcional: Algumas palavras rotacionadas para efeito visual
+#         }
+#     )
 
 def index() -> rx.Component:
     return rx.center(
@@ -168,29 +180,29 @@ def index() -> rx.Component:
 
             # Nuvem de Palavras (Cards de Badges)
             rx.cond(
-                TrendState.keywords,
-                rx.center(
-                    rx.flex(
-                        rx.foreach(TrendState.keywords, classic_word_tag),
-                        wrap="wrap",
-                        justify="center",
-                        align="center",
-                        width="100%",
-                        max_width="900px",
+                TrendState.cloud_data,
+                rx.box(
+                    tag_cloud(
+                        tags=TrendState.cloud_data,
+                        min_size=12,
+                        max_size=45,
+                        # Opções de cores no estilo Apple (Tons de azul e cinza)
+                        color_options={
+                            "luminosity": "dark",
+                            "hue": "blue",
+                        },
                     ),
                     width="100%",
-                    margin_top="2em",
                 )
             ),
             
-            spacing="7",
             align="center",
             width="100%",
+            max_width="1000px",
         ),
         width="100%",
         min_height="100vh",
         bg="#F5F5F7",
-        padding="4em",
     )
 
 # Estilo reutilizável para os inputs
