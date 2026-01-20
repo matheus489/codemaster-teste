@@ -1,0 +1,21 @@
+# Configuração principal do subdomínio
+# Este arquivo deve estar na raiz do subdomínio
+
+# Redireciona para /copywriter por padrão
+RewriteEngine On
+RewriteBase /
+
+# Se não for um arquivo ou diretório existente, redireciona
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Você pode escolher qual app será o padrão
+# Opção 1: Redirecionar para copywriter
+# RewriteRule ^$ /copywriter/ [R=302,L]
+
+# Opção 2: Redirecionar para tendencias
+# RewriteRule ^$ /tendencias/ [R=302,L]
+
+# Opção 3: Criar uma página index.html de escolha
+# Deixe este RewriteRule comentado se criar uma página index
+

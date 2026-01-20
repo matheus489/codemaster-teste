@@ -1,0 +1,6 @@
+[theme]
+primaryColor = "#0066CC"           # Azul clássico da Apple
+backgroundColor = "#F5F5F7"        # Fundo cinza muito claro (Apple Standard)
+secondaryBackgroundColor = "#FFFFFF" # Branco puro para os cartões
+textColor = "#1D1D1F"              # Cinza quase preto para legibilidade
+font = "sans serif"

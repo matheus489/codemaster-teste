@@ -1,0 +1,8 @@
+PassengerEnabled On
+PassengerAppRoot /home/[USERNAME]/public_html/testeinterfaces.codemaster-ia.pt/tendencias
+PassengerBaseURI /tendencias
+PassengerPython /home/[USERNAME]/virtualenv/public_html/testeinterfaces.codemaster-ia.pt/tendencias/3.11/bin/python
+
+# Ajuste o caminho Python conforme necessário
+# No cPanel, geralmente está em: /home/usuario/virtualenv/public_html/subdominio/3.11/bin/python
+
