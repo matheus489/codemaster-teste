@@ -1,7 +1,7 @@
 PassengerEnabled On
-PassengerAppRoot /home/[USERNAME]/public_html/testeinterfaces.codemaster-ia.pt/copywriter
+PassengerAppRoot /home/mcodemasteriapt/public_html/testeinterfaces.codemaster-ia.pt/copywriter
 PassengerBaseURI /copywriter
-PassengerPython /home/[USERNAME]/virtualenv/public_html/testeinterfaces.codemaster-ia.pt/copywriter/3.11/bin/python
+PassengerPython /home/mcodemasteriapt/virtualenv/public_html/testeinterfaces.codemaster-ia.pt/copywriter/3.11/bin/python
 
 # Ajuste o caminho Python conforme necessário
 # No cPanel, geralmente está em: /home/usuario/virtualenv/public_html/subdominio/3.11/bin/python
